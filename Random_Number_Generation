@@ -1,0 +1,61 @@
+#include <iostream>
+#include <cmath>
+#include <random>
+#include <time.h>
+#include <cstdlib>
+
+using namespace std;
+
+
+
+
+int main()
+{
+
+  std::default_random_engine generator;
+  std::normal_distribution<double> distribution(0,1);
+  std::uniform_real_distribution<double> distribution1(0,1);
+
+
+  cout<<"NORMAL DISTRIBUTION\n";
+  for(int i{0}; i<20; i++){
+         double num = distribution(generator);
+         cout<<num<<endl;
+    }
+  cout<<endl;
+
+  cout<<"UNIFORM DISTRIBUTION\n";
+  for(int i{0}; i<20; i++){
+         double num = distribution1(generator);
+         cout<<num<<endl;
+    }
+  cout<<endl;
+
+  srand(time(nullptr));
+  cout<<"UNIFORM DISTRIBUTION INT\n";
+  for(int i{0}; i<20; i++){
+
+        int num = rand()%5 + 1;
+        cout<<num<<endl;
+    }
+  cout<<endl;
+
+
+
+     return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
+ * RANDOM NUMBER GENERATION
+ *
+ * */
