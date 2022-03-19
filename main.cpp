@@ -65,6 +65,7 @@ using namespace std;
 const int population {5};
 const int maxiter {20};
 const double Pa {0.25};
+vector<vector<double>> factor_bounds {{-5,5},{-5,5}}; //Defining the boundaries as a universal variable
 
 //Defining Function Prototypes
 
@@ -72,16 +73,23 @@ vector<vector<double>>randomInit (vector<vector<double>>);
 double functions(vector<double>);
 void iterations_min(vector<vector<double>>);
 void iterations_max(vector<vector<double>>);
-vector<vector<double>>phase1(vector<vector<double>>);
-vector<vector<double>>phase2(vector<vector<double>>);
+vector<vector<double>>phase1_max(vector<vector<double>>&,int);
+vector<vector<double>>phase2_max(vector<vector<double>>&,int);
+vector<vector<double>>phase1_min(vector<vector<double>>&,int);
+vector<vector<double>>phase2_min(vector<vector<double>>&,int);
 void printVec(vector<vector<double>>);
+void printVec(vector<double>);
+vector<double> find_best_max(vector<vector<double>>);
+vector<double> find_best_min(vector<vector<double>>);
 
 
 int main()
 {
-    vector<vector<double>> factor_bounds {{-5,5},{-5,5}};
+//    vector<vector<double>> factor_bounds {{-5,5},{-5,5}};
     vector<vector<double>> randInit = randomInit(factor_bounds);
+    cout<<"\tRANDOMLY INITIALIZED MATRIX\n";
     printVec(randInit);
+    iterations_max(randInit);
      return 0;
 }
 
@@ -148,4 +156,183 @@ void printVec(vector<vector<double>> wolf) {
         }
         cout << endl;
     }
+}
+
+void printVec(vector<double>vec){
+        for(auto c:vec){
+            cout<<c<<" ";
+        }
+        cout<<endl;
+}
+
+vector<double> find_best_max(vector<vector<double>> facs){
+    vector<double>best;
+    best = facs.at(0);
+    /*
+     * 1 - Loop through the facs
+     * 2 - Assign the first vec as the best vec
+     * 3 - Compare the rest of the vec to the best vec and reassign if any of them beat the best vec
+     * */
+    size_t funcpos = facs.at(0).size() - 1;
+    for(size_t i{0}; i<facs.size(); i++){
+        if(facs.at(i).at(funcpos)>best.at(funcpos)){
+            best = facs.at(i);
+        }
+    }
+    return best;
+}
+
+vector<double> find_best_min(vector<vector<double>> facs){
+    vector<double>best;
+    best = facs.at(0);
+    size_t funcpos = facs.at(0).size() - 1;
+    for(size_t i{0}; i<facs.size(); i++){
+        if(facs.at(i).at(funcpos)<best.at(funcpos)){
+            best = facs.at(i);
+        }
+    }
+    return best;
+}
+
+void iterations_max(vector<vector<double>>facs){
+
+    for(int i{0}; i<maxiter; i++){
+        facs = phase1_max(facs,i);
+        if(i == 0){
+            printVec(facs);
+        }
+    }
+
+}
+
+vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
+/*
+ *  2 - CHOOSE THE BEST
+ *
+ * MAKE A LOOP FOR ALL THE NESTS
+ *
+ * 3 - CARRY OUT THE FOLLOWING OPERATIONS FOR THE NESTS
+ *
+ *      GENERATE
+ *       U = randn * sigmau
+ *       v = randn
+ *       Xnew = randn * 0.01*s*(X(t) - Best)
+ *       where s = u/|v|^1/β
+ *
+ *       check if Xnew is within bounds, if it is not, replace it with ub or lb depending on deviaton
+ * 4 - PERFORM THE GREEDY SELECTION
+ *       if f(Xnew) < f(X){replacement occurs}
+ *       else{no replacement occurs}
+ *
+ * 5 - Then display the updated Nest Solutions after the First Phase
+ * */
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0,1);
+    std::uniform_real_distribution<double> distribution1(0,1);
+    double sigmau = 0.6966;
+
+    vector<double>best = find_best_max(facs);
+    if(num == 0){
+        cout<<endl;
+        cout<<"Best: ";
+        printVec(best);
+    }
+
+    //Looping through all the Nests...
+
+    for(size_t i{0}; i<facs.size(); i++){
+
+        vector<double>Xnew;
+
+        //Looping through Nest one by one to find the Xnew Values
+        for(size_t j{0}; j<facs.at(0).size()-1; j++){ //The Function is not included
+
+            double U = distribution(generator)*sigmau;
+            double v = distribution(generator);
+            double s = U/pow(abs(v),1/1.5);
+
+            if(num==0){
+                cout<<endl;
+                cout<<"For Nest "<<i+1<<" Factor "<<j<<endl;
+                cout<<"U: "<<U<<" ; v: "<<v<<" ;s: "<<s<<endl;
+            }
+
+            double new_fac{};
+            double randval = distribution(generator);
+
+            if(num==0){
+                cout<<endl;
+                cout<<"For Xnew, randn: "<<randval<<endl;
+            }
+
+            new_fac = facs.at(i).at(j) + randval * 0.01 *s*(facs.at(i).at(j) - best.at(j));
+            if(num == 0){
+                cout<<"NewFac: "<<new_fac<<endl;
+            }
+
+           //Here you have to confirm that the newfac generated is within the bounds
+            if(new_fac>=factor_bounds.at(j).at(0)&& new_fac<= factor_bounds.at(j).at(1)){
+
+                if(num == 0){
+                    cout<<"NewFac: "<<new_fac<<" is within the bounds"<<endl;
+                }
+            }else if(new_fac<factor_bounds.at(j).at(0)){
+
+                if(num == 0){
+                    cout<<"NewFac: "<<new_fac<<" is lower than the lower bounds"<<endl;
+                }
+                 new_fac = factor_bounds.at(j).at(0);
+            }else{
+                if(num == 0){
+                    cout<<"NewFac: "<<new_fac<<" is higher than the higher bounds"<<endl;
+                }
+                  new_fac = factor_bounds.at(j).at(1);
+            }
+
+            Xnew.push_back(new_fac); //All the factors will have their new value here
+        }
+           double func = functions(Xnew);
+           Xnew.push_back(func);
+
+           size_t pos_func = facs.at(i).size() -1;
+
+           if(func>facs.at(i).at(pos_func)){
+               facs.at(i)=Xnew;
+               if(num == 0){
+                    cout<<endl;
+                   cout<<"F(Xnew): "<<func<<endl;
+                   cout<<"F(X): "<< facs.at(i).at(pos_func)<<endl;
+                   cout<<"Since F(Xnew) > F(X), Replacement will take place\n";
+               }
+           }
+            else if (func<facs.at(i).at(pos_func)){
+                cout<<endl;
+                   if(num == 0){
+                       cout<<"F(Xnew): "<<func<<endl;
+                       cout<<"F(X): "<< facs.at(i).at(pos_func)<<endl;
+                       cout<<"Since F(Xnew) < F(X), Replacement will not take place\n";
+                   }
+               }
+           else if(func==facs.at(i).at(facs.at(i).size()-1)) {
+               cout<<endl;
+              if(num == 0){
+                  cout<<"F(Xnew): "<<func<<endl;
+                  cout<<"F(X): "<< facs.at(i).at(pos_func)<<endl;
+                  cout<<"Since F(Xnew) = F(X), Replacement will not take place\n";
+              }
+           }
+    }
+
+    return facs;
+}
+
+vector<vector<double>>phase2_max(vector<vector<double>>&facs, int num){
+
+}
+
+vector<vector<double>>phase1_min(vector<vector<double>>&facs, int num){
+
+}
+vector<vector<double>>phase2_min(vector<vector<double>>&facs, int num){
+
 }
