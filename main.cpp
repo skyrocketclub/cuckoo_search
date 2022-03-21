@@ -62,8 +62,8 @@ using namespace std;
  *   }
  * */
 
-const int population {5};
-const int maxiter {20};
+const int population {100};
+const int maxiter {200};
 const double Pa {0.25};
 vector<vector<double>> factor_bounds {{-5,5},{-5,5}}; //Defining the boundaries as a universal variable
 
@@ -89,7 +89,7 @@ int main()
     vector<vector<double>> randInit = randomInit(factor_bounds);
     cout<<"\tRANDOMLY INITIALIZED MATRIX\n";
     printVec(randInit);
-    iterations_max(randInit);
+    iterations_min(randInit);
      return 0;
 }
 
@@ -196,13 +196,51 @@ vector<double> find_best_min(vector<vector<double>> facs){
 
 void iterations_max(vector<vector<double>>facs){
 
+        for(int i{0}; i<maxiter; i++){
+            facs = phase1_max(facs,i);
+            if(i == 0){
+                cout<<endl;
+                printVec(facs);
+            }
+            facs = phase2_max(facs,i);
+
+            if(i == 0){ cout<<endl; printVec(facs);}
+
+            if(i>0){
+                vector<double> best = find_best_max(facs);
+                size_t bs = best.size();
+                for(size_t j{0}; j<bs; j++){
+
+                    cout<<best.at(j)<<",";
+            }
+               cout<<endl;
+        }
+
+    }
+}
+
+void iterations_min(vector<vector<double>>facs){
     for(int i{0}; i<maxiter; i++){
-        facs = phase1_max(facs,i);
+        facs = phase1_min(facs,i);
         if(i == 0){
+            cout<<endl;
             printVec(facs);
         }
+        facs = phase2_min(facs,i);
+
+        if(i == 0){ cout<<endl; printVec(facs);}
+
+        if(i>0){
+            vector<double> best = find_best_min(facs);
+            size_t bs = best.size();
+            for(size_t j{0}; j<bs; j++){
+
+                cout<<best.at(j)<<",";
+        }
+           cout<<endl;
     }
 
+}
 }
 
 vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
@@ -274,17 +312,17 @@ vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
             if(new_fac>=factor_bounds.at(j).at(0)&& new_fac<= factor_bounds.at(j).at(1)){
 
                 if(num == 0){
-                    cout<<"NewFac: "<<new_fac<<" is within the bounds"<<endl;
+                    cout<<"NewFac: "<<std::setprecision(7)<<std::showpoint<<new_fac<<" is within the bounds"<<endl;
                 }
             }else if(new_fac<factor_bounds.at(j).at(0)){
 
                 if(num == 0){
-                    cout<<"NewFac: "<<new_fac<<" is lower than the lower bounds"<<endl;
+                    cout<<"NewFac: "<<std::setprecision(7)<<std::showpoint<<new_fac<<" is lower than the lower bounds"<<endl;
                 }
                  new_fac = factor_bounds.at(j).at(0);
             }else{
                 if(num == 0){
-                    cout<<"NewFac: "<<new_fac<<" is higher than the higher bounds"<<endl;
+                    cout<<"NewFac: "<<std::setprecision(7)<<std::showpoint<<new_fac<<" is higher than the higher bounds"<<endl;
                 }
                   new_fac = factor_bounds.at(j).at(1);
             }
@@ -300,24 +338,26 @@ vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
                facs.at(i)=Xnew;
                if(num == 0){
                     cout<<endl;
-                   cout<<"F(Xnew): "<<func<<endl;
-                   cout<<"F(X): "<< facs.at(i).at(pos_func)<<endl;
+                   cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                   cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
                    cout<<"Since F(Xnew) > F(X), Replacement will take place\n";
                }
            }
             else if (func<facs.at(i).at(pos_func)){
-                cout<<endl;
+
                    if(num == 0){
-                       cout<<"F(Xnew): "<<func<<endl;
-                       cout<<"F(X): "<< facs.at(i).at(pos_func)<<endl;
+                       cout<<endl;
+                       cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                       cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
                        cout<<"Since F(Xnew) < F(X), Replacement will not take place\n";
                    }
                }
            else if(func==facs.at(i).at(facs.at(i).size()-1)) {
-               cout<<endl;
+
               if(num == 0){
-                  cout<<"F(Xnew): "<<func<<endl;
-                  cout<<"F(X): "<< facs.at(i).at(pos_func)<<endl;
+                    cout<<endl;
+                  cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                  cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
                   cout<<"Since F(Xnew) = F(X), Replacement will not take place\n";
               }
            }
@@ -327,12 +367,327 @@ vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
 }
 
 vector<vector<double>>phase2_max(vector<vector<double>>&facs, int num){
+/*
+ *
+ *          PHASE 2
+ *    LOOP THROUGH ALL THE NESTS
+ *
+ *    1 - r (random number btw 0 & 1) ---
+ *              r -  It is a matrix, generated for every Nest, depending on Number of Factors
+ *
+ *          if {r < Pa}
+     *          X is selected and modified { checking for x1 and x2 individual}
+     *          Xnew = X + rand*(Xd1 - Xd2)
+     *       else{Nothing is Done}
+     *
+ *    2 - Carry out greedy selection
+ *
+ *    GO TO THE NEXT ITERATION --->2
+ *
+ *
+ *    Output the details of the Cuckoo only for Iteration 1
+ *    After Every Iteration, Cout the BEST
+ * */
 
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0,1);
+    std::uniform_real_distribution<double> distribution1(0,1);
+
+
+    srand(time(nullptr));
+    if(num==0){cout<<"PHASE 2\n";}
+
+    //Looping through all the Nests...
+    for(size_t i{0}; i<facs.size(); i++){
+     vector<double> Xnew;
+     if(num==0){
+     cout<<"NEST "<<i<<endl;
+     }
+        for(size_t j{0}; j<facs.at(i).size()-1; j++){
+           if(num==0){cout<<"x"<<j+1<<endl;}
+
+            double r = distribution1(generator);
+            if(num == 0){cout<<"r: "<<r<<endl;}
+
+            if(r<Pa){
+               //This means that this factor will be manipulated
+                int d1 = rand()%3 +1;
+                int d2 = rand()%3 + 1;
+
+                double random = distribution(generator);
+                double new_fac{0};
+
+                if(num==0){cout<<"r<Pa; d1:"<<d1<<" d2:"<<d2<<endl;}
+                double current = facs.at(i).at(j);
+                new_fac = current + random*(facs.at(d1).at(j) - facs.at(d2).at(j));
+
+                if(num==0){cout<<"X"<<j+1<<" changed from "<<current<<" to "<< new_fac<<std::endl;}
+
+                //Check if the value is within bounds
+                //Here you have to confirm that the newfac generated is within the bounds
+                 if(new_fac>=factor_bounds.at(j).at(0)&& new_fac<= factor_bounds.at(j).at(1)){
+
+                     if(num == 0){
+                         cout<<"NewFac: "<<std::setprecision(9)<<std::showpoint<<new_fac<<" is within the bounds"<<endl;
+                     }
+                 }else if(new_fac<factor_bounds.at(j).at(0)){
+
+                     if(num == 0){
+                         cout<<"NewFac: "<<std::setprecision(9)<<std::showpoint<<new_fac<<" is lower than the lower bounds"<<endl;
+                     }
+                      new_fac = factor_bounds.at(j).at(0);
+                 }else{
+                     if(num == 0){
+                         cout<<"NewFac: "<<std::setprecision(9)<<std::showpoint<<new_fac<<" is higher than the higher bounds"<<endl;
+                     }
+                       new_fac = factor_bounds.at(j).at(1);
+                 }
+
+
+                Xnew.push_back(new_fac);
+            }
+            else{
+                Xnew.push_back(facs.at(i).at(j));
+            }
+        }
+        /*
+         * 1 - Carry out Greedy Selection here
+         * */
+        double func = functions(Xnew);
+        Xnew.push_back(func);
+        size_t pos_func = facs.at(i).size() -1;
+
+        if(func>facs.at(i).at(pos_func)){
+            facs.at(i)=Xnew;
+            if(num == 0){
+                 cout<<endl;
+                cout<<"F(Xnew): "<<std::setprecision(9)<<std::showpoint<<func<<endl;
+                cout<<"F(X): "<<std::setprecision(9)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+                cout<<"Since F(Xnew) > F(X), Replacement will take place\n";
+            }
+        }
+         else if (func<facs.at(i).at(pos_func)){
+
+                if(num == 0){
+                    cout<<endl;
+                    cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                    cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+                    cout<<"Since F(Xnew) < F(X), Replacement will not take place\n";
+                }
+            }
+        else if(func==facs.at(i).at(facs.at(i).size()-1)) {
+
+           if(num == 0){
+                cout<<endl;
+               cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+               cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+               cout<<"Since F(Xnew) = F(X), Replacement will not take place\n";
+           }
+        }
+    }
+    return facs;
 }
 
 vector<vector<double>>phase1_min(vector<vector<double>>&facs, int num){
 
-}
-vector<vector<double>>phase2_min(vector<vector<double>>&facs, int num){
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0,1);
+    std::uniform_real_distribution<double> distribution1(0,1);
+    double sigmau = 0.6966;
 
+    vector<double>best = find_best_min(facs);
+    if(num == 0){
+        cout<<endl;
+        cout<<"Best: ";
+        printVec(best);
+    }
+
+    //Looping through all the Nests...
+
+    for(size_t i{0}; i<facs.size(); i++){
+
+        vector<double>Xnew;
+
+        //Looping through Nest one by one to find the Xnew Values
+        for(size_t j{0}; j<facs.at(0).size()-1; j++){ //The Function is not included
+
+            double U = distribution(generator)*sigmau;
+            double v = distribution(generator);
+            double s = U/pow(abs(v),1/1.5);
+
+            if(num==0){
+                cout<<endl;
+                cout<<"For Nest "<<i+1<<" Factor "<<j<<endl;
+                cout<<"U: "<<U<<" ; v: "<<v<<" ;s: "<<s<<endl;
+            }
+
+            double new_fac{};
+            double randval = distribution(generator);
+
+            if(num==0){
+                cout<<endl;
+                cout<<"For Xnew, randn: "<<randval<<endl;
+            }
+
+            new_fac = facs.at(i).at(j) + randval * 0.01 *s*(facs.at(i).at(j) - best.at(j));
+            if(num == 0){
+                cout<<"NewFac: "<<new_fac<<endl;
+            }
+
+           //Here you have to confirm that the newfac generated is within the bounds
+            if(new_fac>=factor_bounds.at(j).at(0)&& new_fac<= factor_bounds.at(j).at(1)){
+
+                if(num == 0){
+                    cout<<"NewFac: "<<std::setprecision(7)<<std::showpoint<<new_fac<<" is within the bounds"<<endl;
+                }
+            }else if(new_fac<factor_bounds.at(j).at(0)){
+
+                if(num == 0){
+                    cout<<"NewFac: "<<std::setprecision(7)<<std::showpoint<<new_fac<<" is lower than the lower bounds"<<endl;
+                }
+                 new_fac = factor_bounds.at(j).at(0);
+            }else{
+                if(num == 0){
+                    cout<<"NewFac: "<<std::setprecision(7)<<std::showpoint<<new_fac<<" is higher than the higher bounds"<<endl;
+                }
+                  new_fac = factor_bounds.at(j).at(1);
+            }
+
+            Xnew.push_back(new_fac); //All the factors will have their new value here
+        }
+           double func = functions(Xnew);
+           Xnew.push_back(func);
+
+           size_t pos_func = facs.at(i).size() -1;
+
+           if(func<facs.at(i).at(pos_func)){
+               facs.at(i)=Xnew;
+               if(num == 0){
+                    cout<<endl;
+                   cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                   cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+                   cout<<"Since F(Xnew) < F(X), Replacement will take place\n";
+               }
+           }
+            else if (func>facs.at(i).at(pos_func)){
+
+                   if(num == 0){
+                       cout<<endl;
+                       cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                       cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+                       cout<<"Since F(Xnew) > F(X), Replacement will not take place\n";
+                   }
+               }
+           else if(func==facs.at(i).at(facs.at(i).size()-1)) {
+
+              if(num == 0){
+                    cout<<endl;
+                  cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                  cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+                  cout<<"Since F(Xnew) = F(X), Replacement will not take place\n";
+              }
+           }
+    }
+
+    return facs;
+}
+
+vector<vector<double>>phase2_min(vector<vector<double>>&facs, int num){
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0,1);
+    std::uniform_real_distribution<double> distribution1(0,1);
+
+
+    srand(time(nullptr));
+    if(num==0){cout<<"PHASE 2\n";}
+
+    //Looping through all the Nests...
+    for(size_t i{0}; i<facs.size(); i++){
+     vector<double> Xnew;
+     if(num==0){
+     cout<<"NEST "<<i<<endl;
+     }
+        for(size_t j{0}; j<facs.at(i).size()-1; j++){
+           if(num==0){cout<<"x"<<j+1<<endl;}
+
+            double r = distribution1(generator);
+            if(num == 0){cout<<"r: "<<r<<endl;}
+
+            if(r<Pa){
+               //This means that this factor will be manipulated
+                int d1 = rand()%3 +1;
+                int d2 = rand()%3 + 1;
+
+                double random = distribution(generator);
+                double new_fac{0};
+
+                if(num==0){cout<<"r<Pa; d1:"<<d1<<" d2:"<<d2<<endl;}
+                double current = facs.at(i).at(j);
+                new_fac = current + random*(facs.at(d1).at(j) - facs.at(d2).at(j));
+
+                if(num==0){cout<<"X"<<j+1<<" changed from "<<current<<" to "<< new_fac<<std::endl;}
+
+                //Check if the value is within bounds
+                //Here you have to confirm that the newfac generated is within the bounds
+                 if(new_fac>=factor_bounds.at(j).at(0)&& new_fac<= factor_bounds.at(j).at(1)){
+
+                     if(num == 0){
+                         cout<<"NewFac: "<<std::setprecision(9)<<std::showpoint<<new_fac<<" is within the bounds"<<endl;
+                     }
+                 }else if(new_fac<factor_bounds.at(j).at(0)){
+
+                     if(num == 0){
+                         cout<<"NewFac: "<<std::setprecision(9)<<std::showpoint<<new_fac<<" is lower than the lower bounds"<<endl;
+                     }
+                      new_fac = factor_bounds.at(j).at(0);
+                 }else{
+                     if(num == 0){
+                         cout<<"NewFac: "<<std::setprecision(9)<<std::showpoint<<new_fac<<" is higher than the higher bounds"<<endl;
+                     }
+                       new_fac = factor_bounds.at(j).at(1);
+                 }
+
+
+                Xnew.push_back(new_fac);
+            }
+            else{
+                Xnew.push_back(facs.at(i).at(j));
+            }
+        }
+        /*
+         * 1 - Carry out Greedy Selection here
+         * */
+        double func = functions(Xnew);
+        Xnew.push_back(func);
+        size_t pos_func = facs.at(i).size() -1;
+
+        if(func<facs.at(i).at(pos_func)){
+            facs.at(i)=Xnew;
+            if(num == 0){
+                 cout<<endl;
+                cout<<"F(Xnew): "<<std::setprecision(9)<<std::showpoint<<func<<endl;
+                cout<<"F(X): "<<std::setprecision(9)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+                cout<<"Since F(Xnew) < F(X), Replacement will take place\n";
+            }
+        }
+         else if (func>facs.at(i).at(pos_func)){
+
+                if(num == 0){
+                    cout<<endl;
+                    cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+                    cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+                    cout<<"Since F(Xnew) > F(X), Replacement will not take place\n";
+                }
+            }
+        else if(func==facs.at(i).at(facs.at(i).size()-1)) {
+
+           if(num == 0){
+                cout<<endl;
+               cout<<"F(Xnew): "<<std::setprecision(7)<<std::showpoint<<func<<endl;
+               cout<<"F(X): "<<std::setprecision(7)<<std::showpoint<< facs.at(i).at(pos_func)<<endl;
+               cout<<"Since F(Xnew) = F(X), Replacement will not take place\n";
+           }
+        }
+    }
+    return facs;
 }
