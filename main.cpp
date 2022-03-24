@@ -62,10 +62,12 @@ using namespace std;
  *   }
  * */
 
-const int population {100};
-const int maxiter {200};
+const int population {20};
+const int maxiter {1000};
 const double Pa {0.25};
-vector<vector<double>> factor_bounds {{-5,5},{-5,5}}; //Defining the boundaries as a universal variable
+
+//Putting down the bounds for LD, W and L
+vector<vector<double>> factor_bounds {{10,16},{11,17},{20,23}}; //Defining the boundaries as a universal variable
 
 //Defining Function Prototypes
 
@@ -91,7 +93,7 @@ int main()
     printVec(randInit);
 
     int choice{};
-    cout<<"1 - MAXIMIZE\n2 - MAXIMIZE\nCHOICE: ";
+    cout<<"1 - MAXIMIZE\n2 - MINIMIZE\nCHOICE: ";
     cin>>choice;
 
     if(choice == 1){
@@ -151,10 +153,17 @@ double functions(vector<double> facs){
     double val;
 
     //Defining the factors
-    double x1 = facs.at(0);
-    double x2 = facs.at(1);
-    //Enter the Objective Function Here
-    val = pow(x1,2) - x1*x2 + pow(x2,2) + 2*x1 + 4*x2 + 3; //Example from the video
+    double LD = facs.at(0);
+    double W = facs.at(1);
+    double L = facs.at(2);
+
+    //Objective function for the frequency
+//  val = 366.4 - 0.274*LD - 0.274*W - 21.01*L + 0.00781*pow(LD,2) + 0.00781*pow(W,2) + 0.3437*pow(L,2)
+//          + 0.01562*LD*W + 0.0028*LD*L + 0.0028*W*L;
+
+    //Objective function for the Power Output
+    val = 1.12 - 0.0498*LD - 0.0832*W - 0.0385*L + 0.005156*pow(LD,2) + 0.001719*pow(W,2) + 0.00562*pow(L,2)
+            + 0.003153*LD*W - 0.00801*LD*L + 0.00199*W*L;
 
     return val;
 }
@@ -219,6 +228,9 @@ void iterations_max(vector<vector<double>>facs){
             facs = phase2_max(facs,i);
 
             if(i == 0){ cout<<endl; printVec(facs);}
+            if(i == 1){
+                cout<<endl<<"ITERATIONS 2 - "<<maxiter<<endl;
+            }
 
             if(i>0){
                 vector<double> best = find_best_max(facs);
@@ -243,6 +255,9 @@ void iterations_min(vector<vector<double>>facs){
         facs = phase2_min(facs,i);
 
         if(i == 0){ cout<<endl; printVec(facs);}
+        if(i == 1){
+            cout<<endl<<"ITERATIONS 2 - "<<maxiter<<endl;
+        }
 
         if(i>0){
             vector<double> best = find_best_min(facs);
@@ -278,7 +293,8 @@ vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
  *
  * 5 - Then display the updated Nest Solutions after the First Phase
  * */
-    std::default_random_engine generator;
+    srand(time(nullptr));
+    std::default_random_engine generator(rand());
     std::normal_distribution<double> distribution(0,1);
     std::uniform_real_distribution<double> distribution1(0,1);
     double sigmau = 0.6966;
@@ -403,7 +419,8 @@ vector<vector<double>>phase2_max(vector<vector<double>>&facs, int num){
  *    After Every Iteration, Cout the BEST
  * */
 
-    std::default_random_engine generator;
+    srand(time(nullptr));
+    std::default_random_engine generator(rand());
     std::normal_distribution<double> distribution(0,1);
     std::uniform_real_distribution<double> distribution1(0,1);
 
@@ -504,7 +521,8 @@ vector<vector<double>>phase2_max(vector<vector<double>>&facs, int num){
 
 vector<vector<double>>phase1_min(vector<vector<double>>&facs, int num){
 
-    std::default_random_engine generator;
+    srand(time(nullptr));
+    std::default_random_engine generator(rand());
     std::normal_distribution<double> distribution(0,1);
     std::uniform_real_distribution<double> distribution1(0,1);
     double sigmau = 0.6966;
@@ -607,7 +625,8 @@ vector<vector<double>>phase1_min(vector<vector<double>>&facs, int num){
 }
 
 vector<vector<double>>phase2_min(vector<vector<double>>&facs, int num){
-    std::default_random_engine generator;
+    srand(time(nullptr));
+    std::default_random_engine generator(rand());
     std::normal_distribution<double> distribution(0,1);
     std::uniform_real_distribution<double> distribution1(0,1);
 
