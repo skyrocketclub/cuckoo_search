@@ -89,7 +89,21 @@ int main()
     vector<vector<double>> randInit = randomInit(factor_bounds);
     cout<<"\tRANDOMLY INITIALIZED MATRIX\n";
     printVec(randInit);
-    iterations_min(randInit);
+
+    int choice{};
+    cout<<"1 - MAXIMIZE\n2 - MAXIMIZE\nCHOICE: ";
+    cin>>choice;
+
+    if(choice == 1){
+        cout<<"Maximizing...\n";
+        iterations_max(randInit);
+    }else if(choice == 2){
+        cout<<"Minimizing...\n";
+        iterations_min(randInit);
+    }else{
+        cout<<"Kindly enter a valid input...";
+    }
+
      return 0;
 }
 
