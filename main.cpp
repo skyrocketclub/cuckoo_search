@@ -62,6 +62,15 @@ using namespace std;
  *   }
  * */
 
+/*
+ * IN ORDER TO USE THIS CODE CARRY OUT THE FOLLOWING STEPS
+ * 
+ * 1 - EDIT THE "factor_bounds" in line 79   where you define your input boundaries . Be sure to maintain a set order of arrangement for the input variables
+ * 2 - Edit your choice population size, maxiter (maximum iteration) and the value of Pa can be left as it is... lines 74 - 76
+ * 3 - Define the factors, maintaining the chosen arrangement, increase the "fac" elements if you have more than 3 input values... Line 165
+ * 4 - Enter your objective function. Make sure you understand the Code Prior. DO this Carefully as it is the Main Meat of the code. .. line 174
+ *
+ * */
 const int population {20};
 const int maxiter {1000};
 const double Pa {0.25};
