@@ -8,75 +8,12 @@
 
 using namespace std;
 
-
-/*
- * PSUEDOCODE FOR THE CUCKOO SEARCH ALGORITHM (CASE STUDY OF MINIMIZING)
- *
- * 1 - RANDOMLY INITIALIZE A MATRIX --->
- *
- *POPULATION SIZE ---
- *NO OF ITERATION
- *Pa = 0.25
- *
- * ITERATIONS LOOP{
- *                  PHASE 1
- *
- * 2 - CHOOSE THE BEST
- *
- * MAKE A LOOP FOR ALL THE NESTS
- *
- * 3 - CARRY OUT THE FOLLOWING OPERATIONS FOR THE NESTS
- *
- *      GENERATE
- *       U = randn * sigmau
- *       v = randn
- *       Xnew = randn * 0.01*s*(X(t) - Best)
- *       where s = u/|v|^1/β
- *
- *       check if Xnew is within bounds, if it is not, replace it with ub or lb depending on deviaton
- * 4 - PERFORM THE GREEDY SELECTION
- *       if f(Xnew) < f(X){replacement occurs}
- *       else{no replacement occurs}
- *
- * 5 - Then display the updated Nest Solutions after the First Phase
- *
- *
- *          PHASE 2
- *    LOOP THROUGH ALL THE NESTS
- *
- *    1 - r (random number btw 0 & 1) ---
- *              r -  It is a matrix, generated for every Nest, depending on Number of Factors
- *
- *          if {r < Pa}
-     *          X is selected and modified { checking for x1 and x2 individual}
-     *          Xnew = X + rand*(Xd1 - Xd2)
-     *       else{Nothing is Done}
-     *
- *    2 - Carry out greedy selection
- *
- *    GO TO THE NEXT ITERATION --->2
- *
- *
- *    Output the details of the Cuckoo only for Iteration 1
- *    After Every Iteration, Cout the BEST
- *   }
- * */
-
-/*
- * IN ORDER TO USE THIS CODE CARRY OUT THE FOLLOWING STEPS
- * 
- * 1 - EDIT THE "factor_bounds" in line 79   where you define your input boundaries . Be sure to maintain a set order of arrangement for the input variables
- * 2 - Edit your choice population size, maxiter (maximum iteration) and the value of Pa can be left as it is... lines 74 - 76
- * 3 - Define the factors, maintaining the chosen arrangement, increase the "fac" elements if you have more than 3 input values... Line 165
- * 4 - Enter your objective function. Make sure you understand the Code Prior. DO this Carefully as it is the Main Meat of the code. .. line 174
- *
- * */
-const int population {20};
-const int maxiter {1000};
+const int population {10};
+const int maxiter {400};
 const double Pa {0.25};
 
 //Putting down the bounds for LD, W and L
-vector<vector<double>> factor_bounds {{10,16},{11,17},{20,23}}; //Defining the boundaries as a universal variable
+vector<vector<double>> factor_bounds {{5,20},{4.5,6.0},{60,90},{3,6},{15,30}}; //Defining the boundaries as a universal variable
 
 //Defining Function Prototypes
 
@@ -96,7 +33,7 @@ vector<double> find_best_min(vector<vector<double>>);
 
 int main()
 {
-//    vector<vector<double>> factor_bounds {{-5,5},{-5,5}};
+
     vector<vector<double>> randInit = randomInit(factor_bounds);
     cout<<"\tRANDOMLY INITIALIZED MATRIX\n";
     printVec(randInit);
@@ -162,17 +99,16 @@ double functions(vector<double> facs){
     double val;
 
     //Defining the factors
-    double LD = facs.at(0);
-    double W = facs.at(1);
-    double L = facs.at(2);
+    double F = facs.at(0);
+    double DC = facs.at(1);
+    double PO = facs.at(2);
+    double N = facs.at(3);
+    double GS = facs.at(4);
 
-    //Objective function for the frequency
-//  val = 366.4 - 0.274*LD - 0.274*W - 21.01*L + 0.00781*pow(LD,2) + 0.00781*pow(W,2) + 0.3437*pow(L,2)
-//          + 0.01562*LD*W + 0.0028*LD*L + 0.0028*W*L;
-
-    //Objective function for the Power Output
-    val = 1.12 - 0.0498*LD - 0.0832*W - 0.0385*L + 0.005156*pow(LD,2) + 0.001719*pow(W,2) + 0.00562*pow(L,2)
-            + 0.003153*LD*W - 0.00801*LD*L + 0.00199*W*L;
+    //Objective function for the Surface Roughness
+    val =-1.53*F + 2.76*DC + 0.169*PO - 1.92*N - 0.565*GS + 0.00363*F*F + 0.222*DC*DC
++ 0.001081*PO*PO + 0.179*N*N + 0.01285*GS*GS + 0.086*F*DC + 0.00592*F*PO + 0.0630*F*N
++ 0.0080*F*GS - 0.0683*DC*PO;
 
     return val;
 }
@@ -200,11 +136,6 @@ void printVec(vector<double>vec){
 vector<double> find_best_max(vector<vector<double>> facs){
     vector<double>best;
     best = facs.at(0);
-    /*
-     * 1 - Loop through the facs
-     * 2 - Assign the first vec as the best vec
-     * 3 - Compare the rest of the vec to the best vec and reassign if any of them beat the best vec
-     * */
     size_t funcpos = facs.at(0).size() - 1;
     for(size_t i{0}; i<facs.size(); i++){
         if(facs.at(i).at(funcpos)>best.at(funcpos)){
@@ -282,26 +213,6 @@ void iterations_min(vector<vector<double>>facs){
 }
 
 vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
-/*
- *  2 - CHOOSE THE BEST
- *
- * MAKE A LOOP FOR ALL THE NESTS
- *
- * 3 - CARRY OUT THE FOLLOWING OPERATIONS FOR THE NESTS
- *
- *      GENERATE
- *       U = randn * sigmau
- *       v = randn
- *       Xnew = randn * 0.01*s*(X(t) - Best)
- *       where s = u/|v|^1/β
- *
- *       check if Xnew is within bounds, if it is not, replace it with ub or lb depending on deviaton
- * 4 - PERFORM THE GREEDY SELECTION
- *       if f(Xnew) < f(X){replacement occurs}
- *       else{no replacement occurs}
- *
- * 5 - Then display the updated Nest Solutions after the First Phase
- * */
     srand(time(nullptr));
     std::default_random_engine generator(rand());
     std::normal_distribution<double> distribution(0,1);
@@ -406,28 +317,6 @@ vector<vector<double>>phase1_max(vector<vector<double>>&facs, int num){
 }
 
 vector<vector<double>>phase2_max(vector<vector<double>>&facs, int num){
-/*
- *
- *          PHASE 2
- *    LOOP THROUGH ALL THE NESTS
- *
- *    1 - r (random number btw 0 & 1) ---
- *              r -  It is a matrix, generated for every Nest, depending on Number of Factors
- *
- *          if {r < Pa}
-     *          X is selected and modified { checking for x1 and x2 individual}
-     *          Xnew = X + rand*(Xd1 - Xd2)
-     *       else{Nothing is Done}
-     *
- *    2 - Carry out greedy selection
- *
- *    GO TO THE NEXT ITERATION --->2
- *
- *
- *    Output the details of the Cuckoo only for Iteration 1
- *    After Every Iteration, Cout the BEST
- * */
-
     srand(time(nullptr));
     std::default_random_engine generator(rand());
     std::normal_distribution<double> distribution(0,1);
@@ -454,7 +343,7 @@ vector<vector<double>>phase2_max(vector<vector<double>>&facs, int num){
                 int d1 = rand()%3 +1;
                 int d2 = rand()%3 + 1;
 
-                double random = distribution(generator);
+                double random = distribution1(generator);
                 double new_fac{0};
 
                 if(num==0){cout<<"r<Pa; d1:"<<d1<<" d2:"<<d2<<endl;}
@@ -657,8 +546,8 @@ vector<vector<double>>phase2_min(vector<vector<double>>&facs, int num){
 
             if(r<Pa){
                //This means that this factor will be manipulated
-                int d1 = rand()%3 +1;
-                int d2 = rand()%3 + 1;
+                int d1 = rand() % population ;
+                int d2 = rand() % population ;
 
                 double random = distribution(generator);
                 double new_fac{0};
